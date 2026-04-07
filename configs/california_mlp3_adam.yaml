@@ -1,0 +1,9 @@
+dataset: california_housing
+model: mlp3
+optimizer: adam
+epochs: 10
+lr: 0.001
+batch_size: 256
+eval_batch_size: 512
+weight_decay: 0.0
+output_root: ./results

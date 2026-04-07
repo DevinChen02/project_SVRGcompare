@@ -1,0 +1,10 @@
+dataset: cifar10
+model: cnn
+optimizer: mb_svrg
+epochs: 15
+lr: 0.01
+batch_size: 128
+eval_batch_size: 512
+svrg_inner_steps: 300
+svrg_batch_size: 128
+output_root: ./results

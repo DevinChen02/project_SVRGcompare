@@ -1,0 +1,10 @@
+dataset: mnist
+model: mlp1
+optimizer: svrg
+epochs: 10
+lr: 0.01
+batch_size: 128
+eval_batch_size: 512
+svrg_inner_steps: 400
+svrg_batch_size: 1
+output_root: ./results
