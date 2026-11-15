@@ -1,111 +1,61 @@
-# PyTorch Optimization Comparison Project
+# An Empirical Study of Stochastic Variance Reduction
 
-A from-scratch PyTorch project for comparing:
+CSCI 567 final project exploring when variance reduction improves machine learning optimization, and when its computational cost or instability outweighs the benefit.
 
-- **Models**
-  - Linear model / logistic regression style classifier (`linear`)
-  - 1-layer MLP with 100 hidden units (`mlp1`)
-  - 3-layer MLP with hidden sizes 256-128-64 (`mlp3`)
-  - Small CNN with 3 convolution layers (`cnn`, only for MNIST and CIFAR-10)
-- **Optimizers**
-  - Vanilla Gradient Descent (`gd`)
-  - SGD + Momentum (`sgd`)
-  - Adam (`adam`)
-  - SVRG (`svrg`)
-  - Mini-batch SVRG (`mb_svrg`)
-- **Datasets** (all public, downloaded automatically on first run)
-  - [California Housing](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_california_housing.html) — regression, via `sklearn.datasets.fetch_california_housing`
-  - [MNIST](http://yann.lecun.com/exdb/mnist/) — classification, via `torchvision.datasets.MNIST`
-  - [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) — classification, via `torchvision.datasets.CIFAR10`
+[Read the full project report (PDF)](CSCI_567_Final_Project_Report.pdf) · [View experiment figures](results/plot_with_explanation/plots/)
 
-## Notes
+Authors: Congkang Lv, Jiacheng Zhang, Yanxiong Chen, and Yunpu Fan.
 
-- On **California Housing**, the `linear` model acts as **linear regression** rather than logistic regression, because the task is regression.
-- `cnn` is blocked for California Housing because it is not an image dataset.
-- Metrics:
-  - **Regression**: loss = MSE, metric = RMSE
-  - **Classification**: loss = cross-entropy, metric = accuracy
+## Research question
 
-## Project structure
+Stochastic Variance-Reduced Gradient (SVRG) uses a periodically computed full gradient to correct noisy stochastic updates. Its convergence guarantees under smoothness and strong convexity make it appealing, but do those advantages translate to neural network training?
 
-```text
-svrg_project/
-├── config.py
-├── datasets.py
-├── main.py
-├── models.py
-├── optimizers.py
-├── plot_results.py
-├── README.md
-├── requirements.txt
-├── run_experiments.py
-├── trainer.py
-├── utils.py
-└── configs/
-    ├── california_mlp3_adam.yaml
-    ├── cifar10_cnn_mbsvrg.yaml
-    └── mnist_mlp1_svrg.yaml
-```
+This project compares five optimizers across regression and image classification tasks in a shared PyTorch framework. The study examines convergence speed, test performance, and training stability across **55 dataset-model-optimizer combinations**.
 
-## Install
+## Main findings
+
+The report identifies a trade-off between reducing noise, paying for full-gradient snapshots, and maintaining stable updates:
+
+| Task | Observations in the reported experiments |
+| --- | --- |
+| MNIST digit classification | SGD and Adam converge quickly. SVRG variants improve over full-batch GD, but snapshot computation limits their efficiency relative to SGD and Adam. |
+| CIFAR-10 image classification | SVRG becomes unstable in some settings. Mini-batching improves stability but does not outperform SGD or Adam within the training budget; SGD achieves the best reported CNN test accuracy. |
+| California Housing regression | SGD and SVRG show instability on the linear model. Adam remains stable and achieves the lowest reported test RMSE on the MLP models. |
+
+These results come from a single seed and fixed training schedules. They illustrate how optimizer behavior depends on the task, architecture, and hyperparameters.
+
+## Technical work
+
+- Implemented SVRG and mini-batch SVRG from scratch in PyTorch, including snapshot models, full-gradient accumulation, and variance-corrected parameter updates. GD, SGD, and Adam use PyTorch's standard optimizers.
+- Built a common training and evaluation pipeline with automatic dataset loading, configurable architectures, YAML and command-line controls, validation-based model selection, and CSV/JSON logging.
+- Automated the experiment grid and generated comparisons of training loss, test error, and a loss-fluctuation proxy against an estimated gradient-work axis (`#grad/n`).
+
+The plotting code uses the rolling standard deviation of epoch training loss as a stability proxy. Its compute axis uses fixed per-epoch cost estimates; neither quantity is a direct measurement of gradient variance or exact gradient evaluations.
+
+## Experimental scope
+
+| Component | Settings |
+| --- | --- |
+| Datasets | California Housing, MNIST, CIFAR-10 |
+| Models | Linear model; MLP with one hidden layer (100 units); MLP with three hidden layers (256, 128, 64 units); small CNN with three convolutional layers |
+| Optimizers | Full-batch gradient descent (GD), SGD with momentum, Adam, SVRG, mini-batch SVRG |
+| Evaluation | Cross-entropy and accuracy for classification; MSE and RMSE on standardized targets for regression; test error plots use `1 - accuracy` for classification |
+| Schedule | Seed 42; 10 epochs for California Housing and MNIST; 15 epochs for CIFAR-10 |
+
+The linear model is linear regression for California Housing and multinomial logistic regression for the image datasets. The CNN is used only for image classification, yielding 55 valid combinations.
+
+## Run the project
+
+Run commands from the repository root. Datasets download automatically on first use. Training supports CPU and CUDA; a CUDA-enabled GPU is recommended for the full grid. Full-batch GD requires the entire training tensor to fit in device memory.
 
 ```bash
 pip install -r requirements.txt
-```
 
-## Reproducing the figures in the report
-
-The 9 figures in the final report (`<dataset>_1_train_loss_vs_gradn.png`,
-`<dataset>_2_test_error_vs_gradn.png`, `<dataset>_3_variance_vs_gradn.png`
-for each of California Housing, MNIST, CIFAR-10) are generated by the
-following three-step pipeline. All three commands should be run from the
-`svrg_project/` directory.
-
-```bash
-# 1. Install dependencies (one-time)
-pip install -r requirements.txt
-
-# 2. Train all 55 (dataset, model, optimizer) combinations.
-#    This downloads the datasets on first run and writes per-run history
-#    to results/<run_name>/history.csv plus an aggregate
-#    results/all_runs_summary.csv.
-python run_experiments.py
-
-# 3. Render the three plots per dataset used in the report. The script
-#    reads results/<run_name>/history.csv and writes PNGs to
-#    results/plot_with_explanation/plots/.
-python results/plot_with_explanation/compare_plots.py \
-    --results ./results \
-    --out ./results/plot_with_explanation/plots
-```
-
-The MNIST and California Housing schedules run 10 epochs and CIFAR-10
-runs 15 epochs, matching the configuration reported in the paper. The
-random seed is fixed to 42 throughout. A single CUDA-enabled GPU is
-recommended; the full grid takes a few hours on a consumer GPU and
-considerably longer on CPU.
-
-## Run a single experiment
-
-### MNIST + 1-layer MLP + SVRG
-
-```bash
+# Run one configured experiment
 python main.py --config configs/mnist_mlp1_svrg.yaml
 ```
 
-### California Housing + 3-layer MLP + Adam
-
-```bash
-python main.py --config configs/california_mlp3_adam.yaml
-```
-
-### CIFAR-10 + Small CNN + mini-batch SVRG
-
-```bash
-python main.py --config configs/cifar10_cnn_mbsvrg.yaml
-```
-
-### Override config values from the command line
+Additional configurations cover [California Housing with Adam](configs/california_mlp3_adam.yaml) and [CIFAR-10 with mini-batch SVRG](configs/cifar10_cnn_mbsvrg.yaml). Command-line arguments can override configuration values:
 
 ```bash
 python main.py \
@@ -117,111 +67,29 @@ python main.py \
   --batch-size 128
 ```
 
-## Run the whole grid
+### Run the benchmark and generate figures
 
 ```bash
 python run_experiments.py
+
+python results/plot_with_explanation/compare_plots.py \
+    --results ./results \
+    --out ./results/plot_with_explanation/plots
 ```
 
-This enumerates:
+The grid runner uses defaults in `config.py`, including a shared learning rate of `0.01` and batch size of `128`; it does not load the example YAML files. To match a particular reported setting, set its hyperparameters explicitly with `main.py`. The report specifies an Adam learning rate of `0.001` and a tabular batch size of `256`.
 
-- `dataset ∈ {california_housing, mnist, cifar10}`
-- `model ∈ {linear, mlp1, mlp3, cnn}`
-- `optimizer ∈ {gd, sgd, adam, svrg, mb_svrg}`
+Each run writes `summary.json`, `history.csv`, and `curves.png` to `results/<run_name>/`. Optional checkpoints are enabled with `save_checkpoints: true` in YAML. The grid also produces `results/all_runs_summary.csv` and `results/all_runs_summary.json`. The comparison script generates nine figures: training loss, test error, and the stability proxy for each dataset.
 
-Invalid combinations are skipped automatically.
+## Code guide
 
-## Outputs
+| File | Purpose |
+| --- | --- |
+| [trainer.py](trainer.py) | Training loops, custom SVRG updates, evaluation, and model selection |
+| [datasets.py](datasets.py) / [models.py](models.py) | Dataset preparation and model architectures |
+| [config.py](config.py) / [configs/](configs/) | Configuration defaults, validation, and example experiments |
+| [main.py](main.py) / [run_experiments.py](run_experiments.py) | Single-experiment and full-grid entry points |
+| [compare_plots.py](results/plot_with_explanation/compare_plots.py) | Training-loss, test-error, and stability-proxy figures |
+| [plot_results.py](plot_results.py) / [utils.py](utils.py) | Aggregate score plots, seeding, logging, and per-run curves |
 
-For each run, the project saves a folder under `results/<run_name>/`
-containing:
-
-- `summary.json` — config and final best-validation test score
-- `history.csv` — per-epoch train/val/test loss, metric, and time
-- `curves.png` — per-run loss and metric curves
-- optionally `best_model.pt` if `save_checkpoints=True`
-
-After `run_experiments.py` finishes, `results/all_runs_summary.csv` and
-`results/all_runs_summary.json` aggregate all 55 runs.
-
-Two plotting scripts are provided:
-
-- `plot_results.py` — quick optimizer-comparison bar plot per dataset
-  from `all_runs_summary.csv` (sanity-checking only).
-- `results/plot_with_explanation/compare_plots.py` — the figures used in
-  the report: training loss, test error, and variance proxy versus
-  `#grad/n`, one PNG per (dataset, metric).
-
-## Important hyperparameters
-
-### Shared
-- `epochs`
-- `lr`
-- `batch_size`
-- `eval_batch_size`
-- `weight_decay`
-- `seed`
-
-### SGD
-- `momentum`
-
-### Adam
-- `adam_beta1`
-- `adam_beta2`
-- `adam_eps`
-
-### SVRG / mini-batch SVRG
-- `svrg_inner_steps`
-- `svrg_batch_size`
-- `svrg_snapshot_freq` (reserved for future schedule customization)
-
-## Implementation details
-
-### GD
-Uses the full training tensor as one batch and performs one update per epoch.
-
-### SGD / Adam
-Standard mini-batch training with PyTorch optimizers.
-
-### SVRG
-Each epoch:
-1. Create a snapshot model.
-2. Compute the full gradient at the snapshot point.
-3. Perform variance-reduced inner updates with correction:
-
-```text
-∇f_i(w) - ∇f_i(w_tilde) + ∇f(w_tilde)
-```
-
-### Mini-batch SVRG
-Same idea as SVRG, but uses mini-batches in the inner loop instead of single samples.
-
-## Suggested practical defaults
-
-### California Housing
-- `linear`, `mlp1`, `mlp3`
-- `epochs: 50`
-- `batch_size: 256`
-- `lr: 1e-3` for Adam, `1e-2` for SGD/SVRG as a starting point
-
-### MNIST
-- `linear`, `mlp1`, `mlp3`, `cnn`
-- `epochs: 10-20`
-- `batch_size: 128`
-
-### CIFAR-10
-- `linear`, `mlp1`, `mlp3`, `cnn`
-- `epochs: 15-30`
-- `batch_size: 128`
-
-## Common extensions
-
-You can easily extend this project to support:
-
-- multiple seeds and mean ± std reporting
-- early stopping
-- learning rate scheduling
-- confusion matrices for classification
-- more advanced CNNs or ResNets
-- momentum for SVRG variants
-
+Built with Python, PyTorch, torchvision, scikit-learn, NumPy, pandas, Matplotlib, tqdm, and PyYAML.
