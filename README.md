@@ -8,7 +8,11 @@ Authors: Congkang Lv, Jiacheng Zhang, Yanxiong Chen, and Yunpu Fan.
 
 ## Contributions
 
-Yanxiong (Devin) Chen designed the project and experimental plan, including the proposal's final "Experiments and Analysis" slide. His teammates implemented the experiments. He independently created all slides in the pre-final presentation linked above and delivered the presentation. The final report and experimental results are team work.
+| Contributor | Responsibilities |
+| --- | --- |
+| Congkang Lv | Implemented the optimization algorithms and generated the experimental plots. |
+| Yunpu Fan | Conducted theoretical analysis of the experimental results jointly with Yanxiong Chen. |
+| Yanxiong (Devin) Chen | Conceived the project and designed the experimental methodology, including the model and dataset comparisons, hyperparameter sweeps, and evaluation metrics outlined in the proposal's final slide. Conducted theoretical analysis of the results jointly with Yunpu Fan. Contributed to the literature review and final report, and independently created and delivered the entire pre-final presentation. |
 
 ## Approach
 
