@@ -2,9 +2,13 @@
 
 CSCI 567 final project investigating whether variance reduction makes neural network training faster and more reliable. We compared five optimizers across **55 experiments** spanning regression and image classification.
 
-[Read the project report (PDF)](CSCI_567_Final_Project_Report.pdf) · [View results figures](results/plot_with_explanation/plots/)
+[Read the project report (PDF)](CSCI_567_Final_Project_Report.pdf) · [View the pre-final presentation (PDF)](CSCI_567_SVRG_Pre_Final_Presentation.pdf) · [View results figures](results/plot_with_explanation/plots/)
 
 Authors: Congkang Lv, Jiacheng Zhang, Yanxiong Chen, and Yunpu Fan.
+
+## Contributions
+
+Yanxiong (Devin) Chen designed the project and experimental plan, including the proposal's final "Experiments and Analysis" slide. His teammates implemented the experiments. He independently created all slides in the pre-final presentation linked above and delivered the presentation. The final report and experimental results are team work.
 
 ## Approach
 
