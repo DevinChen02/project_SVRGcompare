@@ -11,6 +11,7 @@ Authors: Congkang Lv, Jiacheng Zhang, Yanxiong Chen, and Yunpu Fan.
 | Contributor | Responsibilities |
 | --- | --- |
 | Congkang Lv | Implemented the optimization algorithms and generated the experimental plots. |
+| Jiacheng Zhang | Conducted the experiments and generated the experimental plots. |
 | Yunpu Fan | Conducted theoretical analysis of the experimental results jointly with Yanxiong Chen. |
 | Yanxiong (Devin) Chen | Conceived the project and designed the experimental methodology, including the model and dataset comparisons, hyperparameter sweeps, and evaluation metrics outlined in the proposal's final slide. Conducted theoretical analysis of the results jointly with Yunpu Fan. Contributed to the literature review and final report, and independently created and delivered the entire pre-final presentation. |
 
