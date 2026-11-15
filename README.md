@@ -11,7 +11,7 @@ Authors: Congkang Lv, Jiacheng Zhang, Yanxiong Chen, and Yunpu Fan.
 | Contributor | Responsibilities |
 | --- | --- |
 | Yanxiong (Devin) Chen | Conceived the project and designed the experimental methodology, including model and dataset comparisons, hyperparameter sweeps, and evaluation metrics. Authored the proposal's [Experiments and Analysis slide (slide 7)](CSCI_567_SVRG_Project_Proposal.pdf#page=7). Conducted theoretical analysis of the results jointly with Yunpu Fan. Contributed to the literature review and [final report](CSCI_567_Final_Project_Report.pdf), and independently created and delivered the entire [pre-final presentation](CSCI_567_SVRG_Pre_Final_Presentation.pdf). |
-| Congkang Lv | Implemented the optimization algorithms and generated the experimental plots. |
+| Congkang Lv | Implemented the optimization algorithms. |
 | Jiacheng Zhang | Conducted the experiments and generated the experimental plots. |
 | Yunpu Fan | Conducted theoretical analysis of the experimental results jointly with Yanxiong Chen. |
 
